@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Rastreamento</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auth-status {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 10px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .auth-status.com-token {
+            background: #f0fff4;
+            border-left-color: #48bb78;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f4ff;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+
+        .btn-danger:hover {
+            background: #f56565;
+        }
+
+        .btn-card-update {
+            flex: 1;
+            padding: 8px 12px;
+            background: #f0f4ff;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 36px;
+        }
+
+        .btn-card-update:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-card-update:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        button.loading .text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .form-add {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .form-add input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .form-add input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-add button {
+            padding: 12px 24px;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: slideUp 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 10px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            word-break: break-all;
+            flex: 1;
+        }
+
+        .card-close {
+            background: #fed7d7;
+            color: #c53030;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 9px;
+            transition: all 0.3s ease;
+        }
+
+        .card-close:hover {
+            background: #fc8181;
+            color: white;
+        }
+
+        .card-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .card-status.nao-consultado {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .card-status.em-transito {
+            background: #faf089;
+            color: #975a16;
+        }
+
+        .card-status.entregue {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .card-status.erro {
+            background: #fc8181;
+            color: #742a2a;
+        }
+
+        .card-info {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .card-info:last-of-type {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .info-vazio {
+            color: #bbb;
+            font-style: italic;
+        }
+
+        .ultima-consulta {
+            font-size: 12px;
+            color: #999;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .mensagem-nao-consultado {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .erro-msg {
+            background: #fff5f5;
+            border: 2px solid #fc8181;
+            color: #c53030;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .erro-msg.show {
+            display: block;
+        }
+
+        .sucesso-msg {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            color: #22543d;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .sucesso-msg.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .form-add {
+                flex-direction: column;
+            }
+
+            .form-add input,
+            .form-add button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1>📦 Rastreador de Encomendas</h1>
+                </div>
+                <div class="button-group">
+                    <button class="btn-secondary" id="btnAtualizar" disabled>
+                        <span class="text">🔄 Atualizar Todos</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagens -->
+        <div class="erro-msg" id="erroMsg"></div>
+        <div class="sucesso-msg" id="sucessoMsg"></div>
+
+        <!-- Formulário para adicionar -->
+        <div class="form-add">
+            <input 
+                type="text" 
+                id="novoCodigo" 
+                placeholder="Digite o código de rastreamento"
+                autocomplete="off"
+            />
+            <button class="btn-primary" id="btnAdicionar">
+                <span class="text">➕ Adicionar</span>
+                <span class="spinner" style="display: none;"></span>
+            </button>
+        </div>
+
+        <!-- Cards -->
+        <div class="cards-container" id="cardsContainer"></div>
+
+        <!-- Estado vazio -->
+        <div class="empty-state" id="emptyState">
+            <div class="empty-state-icon">📭</div>
+            <h2>Nenhum rastreamento adicionado</h2>
+            <p>Adicione um código de rastreamento para começar</p>
+        </div>
+    </div>
+
+    <script>
+        const novoCodigo = document.getElementById('novoCodigo');
+        const btnAdicionar = document.getElementById('btnAdicionar');
+        const btnAtualizar = document.getElementById('btnAtualizar');
+        const cardsContainer = document.getElementById('cardsContainer');
+        const emptyState = document.getElementById('emptyState');
+        const erroMsg = document.getElementById('erroMsg');
+        const sucessoMsg = document.getElementById('sucessoMsg');
+
+        // Event listeners
+        btnAdicionar.addEventListener('click', adicionarRastreamento);
+        novoCodigo.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') adicionarRastreamento();
+        });
+        btnAtualizar.addEventListener('click', atualizarTodos);
+
+        // Carregar rastreamentos ao inicializar
+        carregarRastreamentos();
+
+        async function carregarRastreamentos() {
+            try {
+                const response = await fetch('/api/rastreamentos');
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    exibirRastreamentos(data.rastreamentos);
+                    atualizarBotoesAcao();
+                }
+            } catch (error) {
+                mostrarErro('Erro ao carregar rastreamentos: ' + error.message);
+            }
+        }
+
+        async function adicionarRastreamento() {
+            const codigo = novoCodigo.value.trim().toUpperCase();
+
+            if (!codigo) {
+                mostrarErro('Digite um código de rastreamento');
+                return;
+            }
+
+            // Verificar se já existe no painel
+            const existente = Array.from(document.querySelectorAll('.card-title')).find(el => 
+                el.textContent.trim() === codigo
+            );
+
+            if (existente) {
+                mostrarErro(`O código "${codigo}" já foi adicionado à lista`);
+                return;
+            }
+
+            btnAdicionar.disabled = true;
+            btnAdicionar.querySelector('.text').style.display = 'none';
+            btnAdicionar.querySelector('.spinner').style.display = 'block';
+
+            try {
+                const response = await fetch('/api/rastreamentos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codigo })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    mostrarErro(data.erro || 'Erro ao adicionar rastreamento');
+                    return;
+                }
+
+                mostrarSucesso(`Rastreamento "${codigo}" adicionado com sucesso!`);
+                novoCodigo.value = '';
+                carregarRastreamentos();
+
+            } catch (error) {
+                mostrarErro('Erro ao adicionar rastreamento: ' + error.message);
+            } finally {
+                btnAdicionar.disabled = false;
+                btnAdicionar.querySelector('.text').style.display = 'inline';
+                btnAdicionar.querySelector('.spinner').style.display = 'none';
+            }
+        }
+
+        async function atualizarTodos() {
+            btnAtualizar.disabled = true;
+            btnAtualizar.querySelector('.text').style.display = 'none';
+            btnAtualizar.querySelector('.spinner').style.display = 'block';
+
+            try {
+                const response = await fetch('/api/rastreamentos/atualizar-todos', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    mostrarSucesso(`${data.total} rastreamento(s) atualizado(s)!`);
+                    carregarRastreamentos();
+                }
+            } catch (error) {
+                mostrarErro('Erro ao atualizar: ' + error.message);
+            } finally {
+                btnAtualizar.disabled = false;
+                btnAtualizar.querySelector('.text').style.display = 'inline';
+                btnAtualizar.querySelector('.spinner').style.display = 'none';
+            }
+        }
+
+        async function consultarUnico(id) {
+            const button = event.target.closest('.btn-card-update');
+            
+            // Não fazer nada se o botão estiver desabilitado
+            if (button.disabled) {
+                return;
+            }
+            
+            button.disabled = true;
+            button.querySelector('.text').style.display = 'none';
+            button.querySelector('.spinner').style.display = 'flex';
+
+            try {
+                const response = await fetch(`/api/rastreamentos/${id}/consultar`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    mostrarErro(data.erro || 'Erro ao consultar rastreamento');
+                } else {
+                    mostrarSucesso('Rastreamento atualizado!');
+                }
+
+                carregarRastreamentos();
+
+            } catch (error) {
+                mostrarErro('Erro ao consultar: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.querySelector('.text').style.display = 'inline';
+                button.querySelector('.spinner').style.display = 'none';
+            }
+        }
+
+        async function deletarRastreamento(id) {
+            if (!confirm('Tem certeza que deseja deletar este rastreamento?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/rastreamentos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    mostrarSucesso('Rastreamento deletado!');
+                    carregarRastreamentos();
+                }
+            } catch (error) {
+                mostrarErro('Erro ao deletar: ' + error.message);
+            }
+        }
+
+        function exibirRastreamentos(rastreamentos) {
+            cardsContainer.innerHTML = '';
+
+            if (rastreamentos.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            rastreamentos.forEach(rastreamento => {
+                const card = criarCard(rastreamento);
+                cardsContainer.appendChild(card);
+            });
+        }
+
+        function criarCard(rastreamento) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            let statusClass = 'nao-consultado';
+            let statusTexto = 'Não Consultado';
+
+            if (rastreamento.status === 'entregue') {
+                statusClass = 'entregue';
+                statusTexto = 'Entregue';
+            } else if (rastreamento.status === 'erro') {
+                statusClass = 'erro';
+                statusTexto = 'Erro';
+            } else if (rastreamento.status !== 'não_consultado') {
+                statusClass = 'em-transito';
+                statusTexto = 'Em Trânsito';
+            }
+
+            const botaoDesabilitado = rastreamento.status === 'entregue' ? 'disabled' : '';
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">${rastreamento.codigo}</div>
+                    <button class="card-close" onclick="deletarRastreamento(${rastreamento.id})">✕</button>
+                </div>
+
+                <div class="card-status ${statusClass}">${statusTexto}</div>
+
+                ${rastreamento.status === 'não_consultado' ? `
+                    <div class="mensagem-nao-consultado">
+                        ⏳ Ainda não consultado
+                    </div>
+                ` : `
+                    ${rastreamento.descricao ? `
+                        <div class="card-info">
+                            <div class="info-label">Descrição</div>
+                            <div class="info-value">${rastreamento.descricao}</div>
+                        </div>
+                    ` : ''}
+
+                    ${rastreamento.data ? `
+                        <div class="card-info">
+                            <div class="info-label">Data</div>
+                            <div class="info-value">${rastreamento.data}</div>
+                        </div>
+                    ` : ''}
+
+                    ${rastreamento.local ? `
+                        <div class="card-info">
+                            <div class="info-label">Local</div>
+                            <div class="info-value">${rastreamento.local}</div>
+                        </div>
+                    ` : ''}
+
+                    ${rastreamento.destino ? `
+                        <div class="card-info">
+                            <div class="info-label">Destino</div>
+                            <div class="info-value">${rastreamento.destino}</div>
+                        </div>
+                    ` : ''}
+                `}
+
+                <div style="display: flex; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                    <button class="btn-card-update" onclick="consultarUnico(${rastreamento.id})" ${botaoDesabilitado}>
+                        <span class="text">🔄 Consultar</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                </div>
+
+                ${rastreamento.ultima_consulta ? `
+                    <div class="ultima-consulta">
+                        🕐 Última consulta: ${rastreamento.ultima_consulta}
+                    </div>
+                ` : ''}
+            `;
+
+            return card;
+        }
+
+        function atualizarBotoesAcao() {
+            // Habilitar botão de atualizar se houver rastreamentos
+            const temRastreamentos = document.querySelectorAll('.card').length > 0;
+            btnAtualizar.disabled = !temRastreamentos;
+        }
+
+        function mostrarErro(mensagem) {
+            erroMsg.textContent = mensagem;
+            erroMsg.classList.add('show');
+            setTimeout(() => {
+                erroMsg.classList.remove('show');
+            }, 5000);
+        }
+
+        function mostrarSucesso(mensagem) {
+            sucessoMsg.textContent = mensagem;
+            sucessoMsg.classList.add('show');
+            setTimeout(() => {
+                sucessoMsg.classList.remove('show');
+            }, 5000);
+        }
+
+        // Auto-refresh a cada 5 minutos
+        setInterval(() => {
+            if (document.querySelectorAll('.card').length > 0) {
+                carregarRastreamentos();
+            }
+        }, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
