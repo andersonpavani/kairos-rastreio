@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Aplicação Flask com Gunicorn
+  app:
+    build: .
+    container_name: kairos-rastreio-app
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+      - SITERASTREIO_TOKEN=${SITERASTREIO_TOKEN}
+    volumes:
+      # Persistir banco de dados
+      - ./instance:/app/instance
+      # Logs
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - kairos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Nginx como proxy reverso
+  nginx:
+    image: nginx:latest
+    container_name: kairos-rastreio-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Configuração do Nginx
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # SSL/TLS (Let's Encrypt)
+      - ./certs:/etc/nginx/certs:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - kairos-network
+
+networks:
+  kairos-network:
+    driver: bridge
+
+volumes:
+  instance:
+    driver: local

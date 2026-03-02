@@ -1,0 +1,28 @@
+[Unit]
+Description=Kairos Rastreio Flask Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/kairos-rastreio
+Environment="PATH=/var/www/kairos-rastreio/venv/bin"
+ExecStart=/var/www/kairos-rastreio/venv/bin/gunicorn \
+    --workers 4 \
+    --worker-class sync \
+    --bind 127.0.0.1:8000 \
+    --timeout 30 \
+    --access-logfile /var/log/kairos-rastreio/access.log \
+    --error-logfile /var/log/kairos-rastreio/error.log \
+    web_app:app
+
+# Reiniciar em caso de falha
+Restart=always
+RestartSec=5
+
+# Limites de recursos (opcional, ajuste conforme necessário)
+LimitNOFILE=65535
+LimitNPROC=65535
+
+[Install]
+WantedBy=multi-user.target
