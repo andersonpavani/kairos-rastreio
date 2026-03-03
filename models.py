@@ -10,6 +10,7 @@ class Rastreamento(db.Model):
     __tablename__ = 'rastreamentos'
     
     id = db.Column(db.Integer, primary_key=True)
+    id_venda = db.Column(db.String(17), nullable=True, index=True)
     codigo = db.Column(db.String(50), unique=True, nullable=False, index=True)
     status = db.Column(db.String(100), default='não_consultado')  # não_consultado, em_transito, entregue, erro
     descricao = db.Column(db.Text, nullable=True)
@@ -27,6 +28,7 @@ class Rastreamento(db.Model):
         """Converte o objeto para dicionário."""
         return {
             'id': self.id,
+            'id_venda': self.id_venda,
             'codigo': self.codigo,
             'status': self.status,
             'descricao': self.descricao,

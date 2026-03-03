@@ -185,9 +185,17 @@ def criar_rastreamento():
     """Cria um novo rastreamento sem consultar a API imediatamente."""
     data = request.get_json()
     codigo = data.get('codigo', '').strip().upper()
+    id_venda = data.get('id_venda', '').strip().upper()
     
     if not codigo:
-        return jsonify({'erro': 'Código é obrigatório'}), 400
+        return jsonify({'erro': 'Código de rastreamento é obrigatório'}), 400
+    
+    if not id_venda:
+        return jsonify({'erro': 'ID da Venda é obrigatório'}), 400
+    
+    # Validar tamanho do ID Venda
+    if len(id_venda) < 3:
+        return jsonify({'erro': 'ID da Venda deve ter pelo menos 3 caracteres'}), 400
     
     # Verificar se já existe
     existente = Rastreamento.query.filter_by(codigo=codigo).first()
@@ -195,7 +203,7 @@ def criar_rastreamento():
         return jsonify({'erro': f'Código {codigo} já foi adicionado'}), 400
     
     # Criar novo rastreamento
-    novo = Rastreamento(codigo=codigo)
+    novo = Rastreamento(codigo=codigo, id_venda=id_venda)
     db.session.add(novo)
     db.session.commit()
     
