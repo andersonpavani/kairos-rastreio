@@ -27,8 +27,25 @@ TOKEN = os.getenv('SITERASTREIO_TOKEN', '')
 def add_response_headers(response):
     """Adiciona headers úteis para debugging e segurança."""
     response.headers['X-Server'] = 'Gunicorn/Flask'
-    response.headers['Cache-Control'] = 'public, max-age=3600'
     response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # Configurar Cache-Control baseado no tipo de resposta
+    # APIs dinâmicas: sem cache
+    if request.path.startswith('/api/'):
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    # HTML, CSS, JS, imagens: cache moderado
+    elif request.path.endswith(('.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2')):
+        response.headers['Cache-Control'] = 'public, max-age=86400'
+    # HTML padrão: sem cache ou cache curto
+    elif response.content_type and 'text/html' in response.content_type:
+        response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+    # Padrão: sem cache
+    else:
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    
     return response
 
 
