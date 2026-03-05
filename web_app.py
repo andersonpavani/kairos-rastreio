@@ -22,6 +22,16 @@ db.init_app(app)
 TOKEN = os.getenv('SITERASTREIO_TOKEN', '')
 
 
+# Decorator para adicionar headers de resposta úteis
+@app.after_request
+def add_response_headers(response):
+    """Adiciona headers úteis para debugging e segurança."""
+    response.headers['X-Server'] = 'Gunicorn/Flask'
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
 # Criar tabelas se não existirem
 with app.app_context():
     db.create_all()
@@ -265,9 +275,9 @@ def consultar_rastreamento(id):
         rastreamento.destino = info['destino']
         rastreamento.dados_completos = dados
         
-        # Definir como entregue se a descrição indicar
+        # Definir como entregue se a descrição indicar (mas não se for "não entregue")
         descricao = rastreamento.descricao.lower() if rastreamento.descricao else ''
-        if 'entregue' in descricao or 'recebido' in descricao or 'entregação' in descricao:
+        if ('entregue' in descricao or 'recebido' in descricao or 'entregação' in descricao) and 'não entregue' not in descricao:
             rastreamento.status = 'entregue'
         
         # Só atualizar ultima_consulta em caso de sucesso
@@ -307,9 +317,9 @@ def atualizar_todos():
             rastreamento.destino = info['destino']
             rastreamento.dados_completos = dados
             
-            # Definir como entregue se a descrição indicar
+            # Definir como entregue se a descrição indicar (mas não se for "não entregue")
             descricao = rastreamento.descricao.lower() if rastreamento.descricao else ''
-            if 'entregue' in descricao or 'recebido' in descricao or 'entregação' in descricao:
+            if ('entregue' in descricao or 'recebido' in descricao or 'entregação' in descricao) and 'não entregue' not in descricao:
                 rastreamento.status = 'entregue'
             
             # Só atualizar ultima_consulta em caso de sucesso
